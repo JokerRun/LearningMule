@@ -1,0 +1,37 @@
+<?xml version="1.0" encoding="UTF-8"?>
+
+<mule xmlns:http="http://www.mulesoft.org/schema/mule/http" xmlns:cxf="http://www.mulesoft.org/schema/mule/cxf" xmlns="http://www.mulesoft.org/schema/mule/core" xmlns:doc="http://www.mulesoft.org/schema/mule/documentation"
+	xmlns:spring="http://www.springframework.org/schema/beans" 
+	xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+	xsi:schemaLocation="http://www.springframework.org/schema/beans http://www.springframework.org/schema/beans/spring-beans-current.xsd
+http://www.mulesoft.org/schema/mule/core http://www.mulesoft.org/schema/mule/core/current/mule.xsd
+http://www.mulesoft.org/schema/mule/http http://www.mulesoft.org/schema/mule/http/current/mule-http.xsd
+http://www.mulesoft.org/schema/mule/cxf http://www.mulesoft.org/schema/mule/cxf/current/mule-cxf.xsd">
+    <http:listener-config name="HTTP_Listener_Configuration" host="0.0.0.0" port="8081" doc:name="HTTP Listener Configuration"/>
+    <http:request-config name="HTTP_Request_Configuration" host="localhost" port="8080" doc:name="HTTP Request Configuration"/>
+    <flow name="usclientFlow">
+        <http:listener config-ref="HTTP_Listener_Configuration" path="/" doc:name="HTTP"/>
+        <set-payload value="#[message.inboundProperties.'http.query.params'.name]" doc:name="Set Payload"/>
+        <cxf:jaxws-client serviceClass="com.laurus.service.HelloService" doc:name="CXF" operation="sayHi"/>
+        <byte-array-to-string-transformer doc:name="Byte Array to String"/>
+        <logger message="#[payload] #[message]" level="ERROR" category="&gt;&gt;&gt;&gt;&gt;&gt;&gt;&gt;&gt;&gt;&gt;&gt;&gt;&gt;&gt;&gt;&gt;&gt;&gt;&gt;&gt;&gt;&gt;&gt;&gt;&gt;&gt;&gt;&gt;&gt;&gt;enter HTTPrequest &gt;&gt;&gt;&gt;&gt;&gt;&gt;&gt;&gt;&gt;&gt;&gt;&gt;&gt;&gt;&gt;&gt;&gt;&gt;&gt;" doc:name="Logger"/>
+        <http:request config-ref="HTTP_Request_Configuration" path="/us" method="POST" doc:name="HTTP"/>
+    </flow>
+    <flow name="usclientFlow1">
+        <http:listener config-ref="HTTP_Listener_Configuration" path="/ut" doc:name="HTTP"/>
+        <set-payload value="#[message.inboundProperties.'http.query.params'.name]" doc:name="Set Payload"/>
+        <set-property propertyName="user" value="#[message.inboundProperties.'http.query.params'.user]" doc:name="Property"/>
+        <cxf:jaxws-client operation="sayHi" serviceClass="com.laurus.service.HelloService" doc:name="CXF">
+        	<cxf:ws-security >
+        		<cxf:ws-config >
+        			<cxf:property key="action" value="UsernameToken Timestamp"/>
+        			<cxf:property key="user" value="Jerry"/>
+        			<cxf:property key="passwordCallbackClass" value="com.laurus.service.callback.SetPassword" />
+        		</cxf:ws-config>
+        	</cxf:ws-security>
+        </cxf:jaxws-client>
+        <byte-array-to-string-transformer doc:name="Byte Array to String"/>
+        <logger message="#[payload]" level="INFO" category="Enter HTTP Request &gt;&gt;&gt;&gt;&gt;&gt;&gt;&gt;&gt;&gt;&gt;&gt;&gt;&gt;&gt;&gt;&gt;&gt;&gt;&gt;&gt;&gt;&gt;&gt;&gt;&gt;&gt;&gt;&gt;&gt;&gt;&gt;&gt;&gt;&gt;" doc:name="Logger"/>
+        <http:request config-ref="HTTP_Request_Configuration" path="/ut" method="POST" doc:name="HTTP"/>
+    </flow>
+</mule>

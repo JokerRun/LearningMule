@@ -1,0 +1,33 @@
+<?xml version="1.0" encoding="UTF-8"?>
+
+<mule xmlns:http="http://www.mulesoft.org/schema/mule/http" xmlns:cxf="http://www.mulesoft.org/schema/mule/cxf" xmlns="http://www.mulesoft.org/schema/mule/core" xmlns:doc="http://www.mulesoft.org/schema/mule/documentation"
+	xmlns:spring="http://www.springframework.org/schema/beans" 
+	xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+	xsi:schemaLocation="http://www.springframework.org/schema/beans http://www.springframework.org/schema/beans/spring-beans-current.xsd
+http://www.mulesoft.org/schema/mule/core http://www.mulesoft.org/schema/mule/core/current/mule.xsd
+http://www.mulesoft.org/schema/mule/http http://www.mulesoft.org/schema/mule/http/current/mule-http.xsd
+http://www.mulesoft.org/schema/mule/cxf http://www.mulesoft.org/schema/mule/cxf/current/mule-cxf.xsd">
+    <http:listener-config name="HTTP_Listener_Configuration" host="0.0.0.0" port="8080" doc:name="HTTP Listener Configuration"/>
+    <flow name="usserverFlow">
+        <http:listener config-ref="HTTP_Listener_Configuration" path="/us" doc:name="HTTP"/>
+        <byte-array-to-string-transformer doc:name="Byte Array to String"/>
+        <logger message="#[payload]  " level="ERROR" category="new Request Enter &gt;&gt;&gt;&gt;&gt;&gt;&gt;&gt;&gt;&gt;&gt;&gt;&gt;&gt;&gt;&gt;&gt;&gt;&gt;&gt;&gt;&gt;&gt;&gt;&gt;" doc:name="Logger"/>
+        <cxf:jaxws-service serviceClass="com.laurus.service.HelloService" doc:name="CXF"/>
+        <component class="com.laurus.service.HelloServiceImpl" doc:name="Java"/>
+    </flow>
+    <flow name="usserverFlow1">
+        <http:listener config-ref="HTTP_Listener_Configuration" path="/ut" doc:name="HTTP"/>
+        <byte-array-to-string-transformer doc:name="Byte Array to String"/>
+        <logger message="#[payload]  " level="ERROR" category="new Request Enter &gt;&gt;&gt;&gt;&gt;&gt;&gt;&gt;&gt;&gt;&gt;&gt;&gt;&gt;&gt;&gt;&gt;&gt;&gt;&gt;&gt;&gt;&gt;&gt;&gt;" doc:name="Logger"/>
+        <cxf:jaxws-service doc:name="CXF" serviceClass="com.laurus.service.HelloService">
+        	<cxf:ws-security >
+        		<cxf:ws-config >
+        			<cxf:property key="action" value="UsernameToken Timestamp"/>
+        			<cxf:property key="passwordCallbackClass" value="com.laurus.service.callback.ValidatePassword" />
+        		</cxf:ws-config>
+        	</cxf:ws-security>
+        </cxf:jaxws-service>
+        <logger message="#[payload]  " level="ERROR" category="Decrypted  Request &gt;&gt;&gt;&gt;&gt;&gt;&gt;&gt;&gt;&gt;&gt;&gt;&gt;&gt;&gt;&gt;&gt;&gt;&gt;&gt;&gt;&gt;&gt;&gt;&gt;" doc:name="Logger"/>
+        <component class="com.laurus.service.HelloServiceImpl" doc:name="Java"/>
+    </flow>
+</mule>
