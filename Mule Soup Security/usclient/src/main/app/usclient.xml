@@ -9,6 +9,10 @@ http://www.mulesoft.org/schema/mule/http http://www.mulesoft.org/schema/mule/htt
 http://www.mulesoft.org/schema/mule/cxf http://www.mulesoft.org/schema/mule/cxf/current/mule-cxf.xsd">
     <http:listener-config name="HTTP_Listener_Configuration" host="0.0.0.0" port="8081" doc:name="HTTP Listener Configuration"/>
     <http:request-config name="HTTP_Request_Configuration" host="localhost" port="8080" doc:name="HTTP Request Configuration"/>
+    <spring:beans>
+        <spring:bean id="SetPasswordBean" name="SetPasswordBean" class="com.laurus.service.callback.SetPassword"/>
+    </spring:beans>
+
     <flow name="usclientFlow">
         <http:listener config-ref="HTTP_Listener_Configuration" path="/" doc:name="HTTP"/>
         <set-payload value="#[message.inboundProperties.'http.query.params'.name]" doc:name="Set Payload"/>
@@ -20,18 +24,24 @@ http://www.mulesoft.org/schema/mule/cxf http://www.mulesoft.org/schema/mule/cxf/
     <flow name="usclientFlow1">
         <http:listener config-ref="HTTP_Listener_Configuration" path="/ut" doc:name="HTTP"/>
         <set-payload value="#[message.inboundProperties.'http.query.params'.name]" doc:name="Set Payload"/>
-        <set-property propertyName="user" value="#[message.inboundProperties.'http.query.params'.user]" doc:name="Property"/>
+        <set-property propertyName="user" value="#[message.inboundProperties.'http.query.params'.user]" doc:name="SetUser"/>
+        <set-property propertyName="password" value="#[message.inboundProperties.'http.query.params'.password]" doc:name="SetPassword"/>
+        <logger message="#[payload] #[message]" level="INFO" category="Enter HTTP Request &gt;&gt;&gt;&gt;&gt;&gt;&gt;&gt;&gt;&gt;&gt;&gt;&gt;&gt;&gt;&gt;&gt;&gt;&gt;&gt;&gt;&gt;&gt;&gt;&gt;&gt;&gt;&gt;&gt;&gt;&gt;&gt;&gt;&gt;&gt;" doc:name="Log- HTTP-Request"/>
+        <component doc:name="Set-User-Password-To-CallbackHandler">
+        	<callable-entry-point-resolver/>
+            <spring-object bean="SetPasswordBean"/>
+        </component>
         <cxf:jaxws-client operation="sayHi" serviceClass="com.laurus.service.HelloService" doc:name="CXF">
         	<cxf:ws-security >
         		<cxf:ws-config >
         			<cxf:property key="action" value="UsernameToken Timestamp"/>
-        			<cxf:property key="user" value="Jerry"/>
-        			<cxf:property key="passwordCallbackClass" value="com.laurus.service.callback.SetPassword" />
+        			<cxf:property key="user" value="#[message.outboundProperties.user]"/>
+        			<cxf:property key="passwordCallbackRef" value-ref="SetPasswordBean" />
         		</cxf:ws-config>
         	</cxf:ws-security>
         </cxf:jaxws-client>
         <byte-array-to-string-transformer doc:name="Byte Array to String"/>
-        <logger message="#[payload]" level="INFO" category="Enter HTTP Request &gt;&gt;&gt;&gt;&gt;&gt;&gt;&gt;&gt;&gt;&gt;&gt;&gt;&gt;&gt;&gt;&gt;&gt;&gt;&gt;&gt;&gt;&gt;&gt;&gt;&gt;&gt;&gt;&gt;&gt;&gt;&gt;&gt;&gt;&gt;" doc:name="Logger"/>
+        <logger message="#[payload]" level="INFO" category="Send HTTP Request &gt;&gt;&gt;&gt;&gt;&gt;&gt;&gt;&gt;&gt;&gt;&gt;&gt;&gt;&gt;&gt;&gt;&gt;&gt;&gt;&gt;&gt;&gt;&gt;&gt;&gt;&gt;&gt;&gt;&gt;&gt;&gt;&gt;&gt;&gt;" doc:name="Logger"/>
         <http:request config-ref="HTTP_Request_Configuration" path="/ut" method="POST" doc:name="HTTP"/>
     </flow>
 </mule>
